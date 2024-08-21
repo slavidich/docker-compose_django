@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  django:
+    build: ./django
+    command: gunicorn G4.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./django:/app
+      - static-volume:/app/G4/static
+    expose:
+      - 8000
+    environment:
+      - DJANGO_SETTINGS_MODULE=G4.settings
+      - DATABASE_URL=postgres://slava:123ewq@postgresql:5432/dbforG4
+    depends_on:
+      - postgresql
+
+  nginx:
+    volumes:
+      - static-volume:/app/G4/static
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - django
+  
+  postgresql:
+    build: ./postgresql
+    environment:
+      - POSTGRES_DB=dbforG4
+      - POSTGRES_USER=slava
+      - POSTGRES_PASSWORD=123ewq
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
+  static-volume:
